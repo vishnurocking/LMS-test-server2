@@ -1,32 +1,44 @@
-# name: Deploy Node.js Application to EC2
+name: Backend CI/CD
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
 
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-#       - name: Install SSH key
-#         uses: shimataro/ssh-key-action@v2
-#         with:
-#           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-#           known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
 
-#       - name: Deploy to EC2
-#         env:
-#           HOST: ${{ secrets.EC2_HOST }}
-#           USER: ${{ secrets.EC2_USER }}
-#         run: |
-#           ssh $USER@$HOST << EOF
-#             cd ~/LMS-test-server
-#             git pull origin main
-#             npm install
-#             npm run build
-#             pm2 restart ecosystem.config.js
-#           EOF
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ubuntu
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:/home/ubuntu/lms-backend/
+          ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
+            cd /home/ubuntu/lms-backend &&
+            npm install &&
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              cp .env.production .env &&
+              pm2 restart lms-server-prod || pm2 start npm --name "lms-server-prod" -- run start
+            else
+              cp .env.development .env &&
+              pm2 restart lms-server-dev || pm2 start npm --name "lms-server-dev" -- run dev
+            fi
+          '

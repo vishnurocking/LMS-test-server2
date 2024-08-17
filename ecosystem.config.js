@@ -1,13 +1,22 @@
 module.exports = {
   apps: [
     {
-      name: "lms-server",
+      name: "lms-server-dev",
+      script: "npm",
+      args: "run dev",
+      watch: true,
+      env: {
+        NODE_ENV: "development",
+        PORT: 8000,
+      },
+    },
+    {
+      name: "lms-server-prod",
       script: "npm",
       args: "start",
       env: {
         NODE_ENV: "production",
         PORT: 8000,
-        ORIGIN: "http://52.66.212.191,https://www.eduhub.in",
       },
     },
   ],
