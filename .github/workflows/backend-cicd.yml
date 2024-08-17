@@ -30,8 +30,13 @@ jobs:
           USER: ubuntu
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          echo "Attempting to connect to EC2..."
+          ssh -i private_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${USER}@${HOST} 'echo "SSH connection successful"'
+          echo "Copying files to EC2..."
           scp -i private_key -o StrictHostKeyChecking=no -r ./* ${USER}@${HOST}:/home/ubuntu/lms-backend/
+          echo "Executing commands on EC2..."
           ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
+            set -x
             cd /home/ubuntu/lms-backend &&
             npm install &&
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
