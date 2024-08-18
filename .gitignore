@@ -3,4 +3,5 @@ build/
 .env.local
 .env
 .env.production
+.env.development
 Dockerfile
