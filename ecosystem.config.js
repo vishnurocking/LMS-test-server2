@@ -5,9 +5,7 @@ module.exports = {
       script: "npm",
       args: "start",
       watch: true,
-      env: {
-        PORT: 8000,
-      },
+      env_file: ".env",
     },
   ],
 };

@@ -1,33 +1,34 @@
 name: Backend CI/CD
-
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: "18"
-
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           HOST: ${{ secrets.EC2_HOST }}
           USER: ubuntu
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
           ssh -i private_key -o StrictHostKeyChecking=no ${USER}@${HOST} '
             set -e
+            if [ ! -d "/home/ubuntu/lms-backend" ]; then
+              git clone '$REPO_URL' /home/ubuntu/lms-backend
+            fi
             cd /home/ubuntu/lms-backend
-            git pull origin main
+            git fetch --all
+            git reset --hard origin/main
             npm install
             npm run build
             pm2 restart lms-server || pm2 start npm --name "lms-server" -- run start
