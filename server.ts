@@ -14,7 +14,7 @@ cloudinary.config({
   api_secret: process.env.CLOUD_SECRET_KEY,
 });
 
-initSocketServer(server);
+const io = initSocketServer(server);
 
 // Create server
 const PORT = process.env.PORT || 8000;
@@ -23,3 +23,13 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   connectDB();
 });
+
+// Handle process termination
+process.on("SIGINT", () => {
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});
+
+export { io };

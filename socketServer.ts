@@ -1,11 +1,22 @@
 import { Server as SocketIOServer } from "socket.io";
-import http from "http";
+import { Server } from "http";
 
-export const initSocketServer = (server: http.Server) => {
-  const io = new SocketIOServer(server);
+export const initSocketServer = (server: Server) => {
+  const io = new SocketIOServer(server, {
+    path: "/socket.io",
+    cors: {
+      origin:
+        process.env.NODE_ENV === "production"
+          ? "https://gouris.com"
+          : ["http://localhost:3000", "http://127.0.0.1:3000"],
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+    transports: ["websocket", "polling"],
+  });
 
   io.on("connection", (socket) => {
-    console.log("A user connected");
+    console.log("A user connected", socket.id);
 
     // Listen for 'notification' event from the frontend
     socket.on("notification", (data) => {
@@ -14,7 +25,9 @@ export const initSocketServer = (server: http.Server) => {
     });
 
     socket.on("disconnect", () => {
-      console.log("A user disconnected");
+      console.log("A user disconnected", socket.id);
     });
   });
+
+  return io;
 };
