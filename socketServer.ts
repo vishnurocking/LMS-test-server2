@@ -5,10 +5,7 @@ export const initSocketServer = (server: Server) => {
   const io = new SocketIOServer(server, {
     path: "/socket.io",
     cors: {
-      origin:
-        process.env.NODE_ENV === "production"
-          ? "https://gouris.com"
-          : ["http://localhost:3000", "http://127.0.0.1:3000"],
+      origin: process.env.ORIGIN?.split(",") || [],
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -18,9 +15,7 @@ export const initSocketServer = (server: Server) => {
   io.on("connection", (socket) => {
     console.log("A user connected", socket.id);
 
-    // Listen for 'notification' event from the frontend
     socket.on("notification", (data) => {
-      // Broadcast the notification data to all connected clients (admin dashboard)
       io.emit("newNotification", data);
     });
 
