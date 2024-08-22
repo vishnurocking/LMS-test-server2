@@ -27,7 +27,7 @@ app.use(
     origin: function (origin, callback) {
       // allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
@@ -41,9 +41,6 @@ app.use(
       "X-Requested-With",
       "Accept",
       "Origin",
-      "Access-Control-Allow-Headers",
-      "Access-Control-Allow-Origin",
-      "Access-Control-Allow-Credentials",
     ],
     exposedHeaders: ["Content-Length", "X-Total-Count"],
     maxAge: 3600,
