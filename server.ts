@@ -25,6 +25,7 @@ const io = new SocketIOServer(server, {
     credentials: true,
   },
   transports: ["websocket", "polling"],
+  allowEIO3: true, // Add this line to allow Engine.IO 3 clients
 });
 
 // Initialize socket server

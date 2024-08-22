@@ -19,6 +19,10 @@ app.use(express.json({ limit: "50mb" }));
 // cookie parser
 app.use(cookieParser());
 
+app.use("/socket.io", (req, res) => {
+  res.sendStatus(200);
+});
+
 // CORS configuration
 const allowedOrigins = process.env.ORIGIN ? process.env.ORIGIN.split(",") : [];
 
